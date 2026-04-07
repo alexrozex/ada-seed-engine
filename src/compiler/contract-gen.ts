@@ -9,6 +9,7 @@
  */
 
 import { z } from "zod";
+import { extractJson } from "./json-repair.js";
 import type { AgentSpec } from "./agent-extractor.js";
 import type { AgentPrimitive } from "../schema/index.js";
 
@@ -148,20 +149,9 @@ export function applyRefinement(
  * Parse the LLM response for contract refinement.
  */
 export function parseContractRefinement(response: string): ContractRefinement {
-  const cleaned = response
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match)
-      throw new Error(
-        `Contract refinement: LLM returned invalid JSON.\nResponse: ${cleaned.slice(0, 200)}`,
-      );
-    parsed = JSON.parse(match[0]);
-  }
-  return ContractRefinement.parse(parsed);
+  return extractJson(
+    response,
+    (d) => ContractRefinement.parse(d),
+    "Contract refinement",
+  );
 }

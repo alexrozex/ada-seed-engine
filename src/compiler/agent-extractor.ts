@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { extractJson } from "./json-repair.js";
 import type { StructuredIntent } from "./intent-parser.js";
 
 // ─── Agent Spec (pre-compilation) ──────────────────────────────────────
@@ -98,20 +99,9 @@ Respond with ONLY valid JSON (no markdown, no explanation):
 export function parseAgentExtractionResponse(
   response: string,
 ): AgentExtractionResult {
-  const cleaned = response
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match)
-      throw new Error(
-        `Agent extractor: LLM returned invalid JSON.\nResponse: ${cleaned.slice(0, 200)}`,
-      );
-    parsed = JSON.parse(match[0]);
-  }
-  return AgentExtractionResult.parse(parsed);
+  return extractJson(
+    response,
+    (d) => AgentExtractionResult.parse(d),
+    "Agent extractor",
+  );
 }

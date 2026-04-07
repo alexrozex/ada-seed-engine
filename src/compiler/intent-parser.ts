@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { extractJson } from "./json-repair.js";
 
 // ─── Structured Intent ─────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ export const StructuredIntent = z.object({
       z.object({
         name: z.string(),
         type: z.string(),
-        attributes: z.record(z.string()),
+        attributes: z.record(z.coerce.string()),
       }),
     )
     .describe("Named entities in the intent"),
@@ -28,10 +29,10 @@ export const StructuredIntent = z.object({
   implied_domains: z
     .array(z.string())
     .describe("Functional domains implied by the objective"),
-  scale: z.string().optional().describe("Scale indicators if present"),
+  scale: z.string().nullish().describe("Scale indicators if present"),
   channels: z
     .array(z.string())
-    .optional()
+    .nullish()
     .describe("Communication channels mentioned"),
 });
 export type StructuredIntent = z.infer<typeof StructuredIntent>;
@@ -75,21 +76,9 @@ Rules:
  * Parse the LLM response into a StructuredIntent.
  */
 export function parseIntentResponse(response: string): StructuredIntent {
-  const cleaned = response
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch {
-    // Try to extract JSON object from response
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match)
-      throw new Error(
-        `Intent parser: LLM returned invalid JSON.\nResponse: ${cleaned.slice(0, 200)}`,
-      );
-    parsed = JSON.parse(match[0]);
-  }
-  return StructuredIntent.parse(parsed);
+  return extractJson(
+    response,
+    (d) => StructuredIntent.parse(d),
+    "Intent parser",
+  );
 }
