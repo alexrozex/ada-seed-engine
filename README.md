@@ -1,8 +1,17 @@
-# Ada Seed Engine
+<p align="center">
+  <img src="logo.svg" width="120" alt="Motherlabs" />
+</p>
 
-Compile natural language intent into governed, self-monitoring multi-agent topologies for OpenClaw.
+<h1 align="center">Ada Seed Engine</h1>
 
+<p align="center">
+Compile natural language intent into governed, self-monitoring multi-agent topologies for OpenClaw.<br/>
 One prompt in. Running agent city out.
+</p>
+
+<p align="center">
+  <a href="https://github.com/alexrozex/ada-seed-engine">GitHub</a> &middot; by <a href="https://motherlabs.ai">Motherlabs</a>
+</p>
 
 ## What It Does
 
